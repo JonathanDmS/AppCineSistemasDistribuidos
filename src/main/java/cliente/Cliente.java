@@ -1,7 +1,6 @@
 package cliente;
 
-import controlador.Controlador;
-import servidor.Servidor;
+
 
 import java.io.*;
 import java.net.*;
@@ -14,7 +13,8 @@ import java.util.Scanner;
 public class Cliente extends Thread {
 
     private static final String SERVIDOR = "localhost";
-    private static final int PUERTO = 12345;
+    private static final int PUERTO = 12346; // Puerto del balanceador
+
 
     public static void main(String[] args) {
         try (Socket socket = new Socket(SERVIDOR, PUERTO);
@@ -22,6 +22,8 @@ public class Cliente extends Thread {
              DataOutputStream out = new DataOutputStream(socket.getOutputStream());
              Scanner scanner = new Scanner(System.in)
         ) {
+           // out.writeUTF("CLIENTE");
+           
             String confirmacionCompra;
             do {
                 System.out.println("\nConectado al servidor de cine 🎥🍿");
@@ -83,4 +85,3 @@ public class Cliente extends Thread {
         }
     }
 }
-
