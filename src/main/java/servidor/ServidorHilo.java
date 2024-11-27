@@ -44,11 +44,11 @@ public class ServidorHilo extends Thread {
             int eleccionFuncion;// Elección de la función por parte del cliente
             int cantidadAsientosPorReservar;// Cantidad de asientos a reservar
             List<String> listaPosicionesAsientos;// Lista de posiciones de asientos a reservar
-
+            out.writeUTF(transaccion.getId());
             do {
            
                 // Bienvenida al cliente y solicitar la funcion elegida
-               
+                replicarTransaccion(transaccion.toString());
                 enviarMensajeBienvenidaFuncion(out); 
                 transaccion.avanzarPaso();
                 
@@ -56,7 +56,7 @@ public class ServidorHilo extends Thread {
                 // Leer la elección de la función del cliente y validarla
                 eleccionFuncion = procesarEleccionFuncion(in, out);               
                 transaccion.setFuncion(eleccionFuncion);
-                 replicarTransaccion(transaccion.toString());
+                replicarTransaccion(transaccion.toString());
                 transaccion.avanzarPaso(); 
        
                 // Enviar al cliente informacion y disposicion de asientos de la funcion elegida       
@@ -153,7 +153,7 @@ public class ServidorHilo extends Thread {
             replicarTransaccion(transaccion.toString());
             posicionesAsientos.add(p);
         }
-      
+        transaccion.avanzarPaso();
         return posicionesAsientos;
     }
 

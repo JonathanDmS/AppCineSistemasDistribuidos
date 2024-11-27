@@ -33,8 +33,6 @@ public class ServidorHiloR extends Thread {
     
     }
     
-
-
    @Override
     public void run() {
         try (DataInputStream in = new DataInputStream(socket.getInputStream());
@@ -44,23 +42,24 @@ public class ServidorHiloR extends Thread {
             int eleccionFuncion;// Elección de la función por parte del cliente
             int cantidadAsientosPorReservar;// Cantidad de asientos a reservar
             List<String> listaPosicionesAsientos;// Lista de posiciones de asientos a reservar
-
+            out.writeUTF(transaccion.getId());
+           // out.write(transaccion.getPasoActual());
             do {
            
                 // Bienvenida al cliente y solicitar la funcion elegida
-                if (transaccion.getPasoActual() == 0) {
                 enviarMensajeBienvenidaFuncion(out); 
                 transaccion.avanzarPaso();
-                }
-    
+
                 // Leer la elección de la función del cliente y validarla
-                eleccionFuncion = procesarEleccionFuncion(in, out);           
+                eleccionFuncion = procesarEleccionFuncion(in, out);               
+                transaccion.setFuncion(eleccionFuncion);
                 transaccion.avanzarPaso(); 
        
                 // Enviar al cliente informacion y disposicion de asientos de la funcion elegida       
                 out.writeUTF(Controlador.mostrarDisposicionAsientos(eleccionFuncion, ServidorR.sala1));
                 // Solicitar al cliente la cantidad de asientos a reservar
                 cantidadAsientosPorReservar = procesarCantidadAsientosCompra(in, out, eleccionFuncion);
+                transaccion.setnAsientos(cantidadAsientosPorReservar);
                 transaccion.avanzarPaso();
      
                
@@ -75,21 +74,20 @@ public class ServidorHiloR extends Thread {
                             "Por favor, intenta con otros asientos.");
                     System.out.println("\nCliente " + contadorClientes + " - Rollback de la reserva de asientos.");
                 }
-            } while (!asientosReservados);
-
-            out.writeUTF("exito");
-            ServidorR.sala1.getFunciones().get(eleccionFuncion - 1).confirmarCompra(transaccion.getId());
-            System.out.println("\nCliente " + contadorClientes + " - Compra exitosa de " +
-                    cantidadAsientosPorReservar + " asiento(s) de la función " + eleccionFuncion);
-            out.writeUTF("\n¡Reserva exitosa! Gracias por tu compra. 😊");
-
-        } catch (IOException e) {
-            System.out.println("\nError en la conexión con el cliente: " + contadorClientes + " - " + e.getMessage());
-        } finally {
-          
-            ServidorR.mensajeClienteDesconectado(transaccion.getId(), contadorClientes);
-            try {
-                socket.close();
+                
+                } while (!asientosReservados);
+                    out.writeUTF("exito");
+                    ServidorR.sala1.getFunciones().get(eleccionFuncion - 1).confirmarCompra(transaccion.getId());
+                    System.out.println("\nCliente " + contadorClientes + " - Compra exitosa de " +
+                            cantidadAsientosPorReservar + " asiento(s) de la función " + eleccionFuncion);
+                    transaccion.avanzarPaso();                  
+                    out.writeUTF("\n¡Reserva exitosa! Gracias por tu compra. 😊");
+                } catch (IOException e) {
+                    System.out.println("\nError en la conexión con el cliente: " + contadorClientes + " - " + e.getMessage());
+                } finally {
+                    ServidorR.mensajeClienteDesconectado(transaccion.getId(), contadorClientes);
+                    try {
+                        socket.close();
             } catch (IOException e) {
                 System.out.println("Error al cerrar socket: " + e.getMessage());
             }

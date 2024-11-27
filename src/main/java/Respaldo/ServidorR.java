@@ -13,6 +13,7 @@ import controlador.Controlador;
 import entidades.Sala;
 import entidades.Transaccion;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.ServerSocket;
@@ -58,6 +59,14 @@ public class ServidorR {
      
     }
     
+     private static void iniciarReconexionCliente(Socket socket, Transaccion transaccionRec) {
+        synchronized (ServidorR.class) {
+            contadorClientes++;
+        }
+        poolHilos.execute(new ManejadorInterupciones(socket, transaccionRec, contadorClientes));
+     
+    }
+    
     public static synchronized void mensajeClienteDesconectado(String idTransaccion, int contadorClientes) {
         System.out.println("\nConexion finalizada - Cliente : " + contadorClientes +
                 " - idTransaccion : " + idTransaccion);
@@ -68,8 +77,16 @@ public class ServidorR {
         try (ServerSocket serverSocket = new ServerSocket(12347)) {
             while (true) {
                     Socket socket = serverSocket.accept();
-                    iniciarConexionClienteHilo(socket);
-                }
+                    DataInputStream in = new  DataInputStream(socket.getInputStream());
+                    String id= in.readUTF();
+                    if(id.equals("CLIENTE"))
+                        iniciarConexionClienteHilo(socket);
+                    else{
+                        System.out.println("Intentando recuperar transaccion");
+                        iniciarReconexionCliente(socket,transaccionesActivas.get(id));
+                        System.out.println("Ultimo estado"+transaccionesActivas.get(id).toString());
+                    }
+            }
         } catch (IOException e) {
                 System.err.println("Error al iniciar como principal: " + e.getMessage());
                 }

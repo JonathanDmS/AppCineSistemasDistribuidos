@@ -27,6 +27,8 @@ public class Servidor {
         try (ServerSocket serverSocket = new ServerSocket(PUERTO)) {
             while (true) {
                 Socket socket = serverSocket.accept();
+                DataInputStream in = new  DataInputStream(socket.getInputStream());
+                String id= in.readUTF();                  
                 iniciarConexionClienteHilo(socket);
             }
         } catch (IOException e) {
